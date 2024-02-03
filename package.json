@@ -1,0 +1,36 @@
+{
+  "name": "bitebox-be",
+  "version": "1.0.0",
+  "description": "A web-based food marketplace that allows users to browse restaurant listings, view dishes offered by each restaurant, log in, add dishes to a cart, and execute orders.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --cache --write .",
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ujjwalnv/BiteBox-BE.git"
+  },
+  "author": "Ujjwal Verma",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ujjwalnv/BiteBox-BE/issues"
+  },
+  "homepage": "https://github.com/ujjwalnv/BiteBox-BE#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.3.0",
+    "mongoose": "^8.1.1",
+    "nodemailer": "^6.9.9",
+    "nodemon": "^3.0.3"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.4"
+  }
+}
