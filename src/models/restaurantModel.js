@@ -1,11 +1,15 @@
+import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 
-const itemSchema = new mongoose.Schema({
+export const itemSchema = new mongoose.Schema({
     name:{
         type: String, required: true
     },
     price:{
         type: Number, required: true
+    },
+    restaurant_id:{
+        type: ObjectId, required: true
     }
 })
 

@@ -18,7 +18,8 @@ router.post('/addItems', async (req, res) => {
 
         const item = await Item.create({
             name: item_name,
-            price: item_price
+            price: item_price,
+            restaurant_id: restaurant_id
         })
 
         await Restaurant.findByIdAndUpdate(

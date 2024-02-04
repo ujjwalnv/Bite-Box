@@ -128,10 +128,10 @@ router.post("/register", async (req, res) => {
     const user_email = req.body.email;
     const user_password = req.body.password;
   
-    //TODO: Check if credential exists and not empty
+    //Check if credential exists and not empty
     if(!user_email || !user_password) res
     .status(constants.HTTP_STATUS_BAD_REQUEST)
-    .send({ message: "Username or Password is mpty." });
+    .send({ message: "Username or Password can't be empty." });
 
     const user = await User.findOne( {
         email: user_email 
@@ -139,10 +139,10 @@ router.post("/register", async (req, res) => {
   
     if (!user) return res.status(constants.HTTP_STATUS_UNAUTHORIZED).send({message: "Email does not exist. Please register."});
   
-    const password = user.password;
+    const correct_password = user.password;
   
     // Load hash from your password DB.
-    const result = await bcrypt.compare(user_password, password);
+    const result = await bcrypt.compare(user_password, correct_password);
     if (!result) return res.status(constants.HTTP_STATUS_UNAUTHORIZED).send({message: "Incorrect Password."});
   
     //Create JWT token

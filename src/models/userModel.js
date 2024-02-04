@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { cartSchema } from '../models/cartModel.js'
 
 const userSchema = mongoose.Schema(
     {
@@ -14,6 +15,11 @@ const userSchema = mongoose.Schema(
     password:{
         type: String,
         required: true
+    },
+    cart:{
+        type: cartSchema,
+        required: true,
+        unique: true
     }
 },
 {
