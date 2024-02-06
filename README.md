@@ -4,8 +4,9 @@ A web-based food marketplace that allows users to browse restaurant listings, vi
 # Instructions to run the code
 
 - Clone this repository
-- Install Dependencies
+- Install Dependencies (npm install)
 - Rename sample.env file as .env and add required Data.
 - To run the backend use - npm run dev
 
-# Frontend Repo
+# Frontend Repository
+https://github.com/ujjwalnv/BiteBox-FE
