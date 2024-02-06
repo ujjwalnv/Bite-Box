@@ -5,7 +5,7 @@ const cartItemSchema = new mongoose.Schema({
     cart_item:{
         type: itemSchema
     },
-    unit:{
+    units:{
         type: Number,
         default: 1,
         min: 1,
