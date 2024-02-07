@@ -7,9 +7,12 @@ import crypto from "crypto";
 import {
   JWT_ACCESS_TOKEN_SECRET,
   JWT_EMAIL_VERIFICATION_SECRET,
+  JWT_REFRESH_TOKEN_SECRET,
 } from "../constants/env_constants.js";
 import { sendVerificationEmail } from "../mailer/authenticationHandler.js";
 import { Cart } from "../models/cartModel.js";
+import { RefreshTokeDB } from "../models/refreshTokenModel.js";
+import { authenticateJWT }  from '../middleware/authenticateJWT.js';
 
 const router = express.Router();
 
@@ -30,31 +33,18 @@ function getToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
-function generateAccessToken(user) {
+function generateJWTToken(user, secret, exp) {
   const access_token = jwt.sign(
     {
       email: user.email,
       name: user.name,
     },
-    JWT_ACCESS_TOKEN_SECRET
+    secret,
+    {expiresIn: exp}
   );
 
   return access_token;
 }
-
-export const auth = (request, response, next) => {
-  try {
-    const token = request.header("x-auth-token");
-    console.log("token", token);
-    jwt.verify(token, process.env.SECRET_KEY);
-    next();
-  } catch (err) {
-    response.status(401).send({
-      error: err.message,
-    });
-  }
-};
-
 
 router.post("/register", async (req, res) => {
   const name = req.body.name;
@@ -147,36 +137,34 @@ router.post("/login", async (req, res) => {
   const user_email = req.body.email;
   const user_password = req.body.password;
 
-//   console.log(req.cookies);
-
-//   console.log(req.headers);
   //Check if credential exists and not empty
   if (!user_email || !user_password)
     return res
       .status(constants.HTTP_STATUS_BAD_REQUEST)
-      .send({ message: "Username or Password can't be empty." });
+      .send({ message: "Email or Password can't be empty." });
 
   const user = await User.findOne({
     email: user_email,
   });
 
-  //Check if user is already present in unverified_user DB
-  const unverified_user = await UnverifiedUser.findOne({
-    email: user_email,
-  });
-
-  if (unverified_user) {
-    await sendEmail(unverified_user);
-
-    return res.status(constants.HTTP_STATUS_CONFLICT).send({
-      message: `User is already registered, Check you email(${unverified_user.email}) for Verification email!`,
+  if(!user){
+    //Check if user is already present in unverified_user DB
+    const unverified_user = await UnverifiedUser.findOne({
+        email: user_email,
     });
-  }
 
-  if (!user)
+    if (unverified_user) {
+        await sendEmail(unverified_user);
+
+        return res.status(constants.HTTP_STATUS_CONFLICT).send({
+        message: `User is already registered, Check you email(${unverified_user.email}) for Verification email!`,
+        });
+    }
+
     return res
       .status(constants.HTTP_STATUS_UNAUTHORIZED)
       .send({ message: "Email does not exist. Please register." });
+  }
 
   const correct_password = user.password;
 
@@ -188,16 +176,51 @@ router.post("/login", async (req, res) => {
       .send({ message: "Incorrect Password." });
 
   //Create JWT token
-  const access_token = generateAccessToken(user);
+  const access_token = generateJWTToken(user, JWT_ACCESS_TOKEN_SECRET, 1200);
+  const refresh_token = generateJWTToken(user, JWT_REFRESH_TOKEN_SECRET, '9999 years');
 
-  return res
-    .status(constants.HTTP_STATUS_OK)
-    .send({ access_token: access_token });
+  await RefreshTokeDB.create({
+    refresh_token: refresh_token
+  })
+
+  return res.json({access_token: access_token, refresh_token: refresh_token });
 });
 
-router.delete('/logout', (req, res) => {
+router.post('/token', async (req, res) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.sendStatus(constants.HTTP_STATUS_BAD_GATEWAY);
+    }
+
+    const refresh_token = await RefreshTokeDB.findOne({
+        refresh_token: token
+    })
+
+    if (!refresh_token) {
+        return res.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+    }
+
+    jwt.verify(token, JWT_REFRESH_TOKEN_SECRET, (err, user) => {
+        if (err) {
+            return res.sendStatus(constants.HTTP_STATUS_FORBIDDEN);
+        }
+
+        const accessToken = generateJWTToken(user, JWT_ACCESS_TOKEN_SECRET, '20m');
+
+        res.json({
+            accessToken
+        });
+    })
+})
+
+router.delete('/logout', authenticateJWT, async (req, res) => {
+    const token = req.body;
     try {
-        res.send({message: "logged out"});
+        await RefreshTokeDB.delete({
+            refresh_token: token,
+        })
+        res.send({message: "Logout successful"});
     } catch (error) {
         res.send({message: error});
     }
