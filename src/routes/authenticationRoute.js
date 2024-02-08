@@ -214,12 +214,19 @@ router.post('/token', async (req, res) => {
     })
 })
 
+router.get('/verify-token', authenticateJWT, (req, res) => {
+    res.sendStatus(constants.HTTP_STATUS_OK)
+})
+
 router.delete('/logout', authenticateJWT, async (req, res) => {
     const token = req.body;
     try {
-        await RefreshTokeDB.delete({
-            refresh_token: token,
-        })
+        if(token) {
+            await RefreshTokeDB.delete({
+                refresh_token: token,
+            })
+        }
+        
         res.send({message: "Logout successful"});
     } catch (error) {
         res.send({message: error});
