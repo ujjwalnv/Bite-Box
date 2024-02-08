@@ -1,11 +1,11 @@
-import { constants } from 'http2';
 import express from 'express';
 import { Item, Restaurant } from '../models/restaurantModel.js';
+import { authenticateJWT }  from '../middleware/authenticateJWT.js';
 
 const router = express.Router();
 
 // Create and add items Restaurants based on their id
-router.post('/addItems', async (req, res) => {
+router.post('/addItems', authenticateJWT, async (req, res) => {
     // Get restaurant
     const restaurant_id = req.body.id;
     const items = req.body.items;
@@ -33,14 +33,14 @@ router.post('/addItems', async (req, res) => {
     res.send({message: `Added ${counter} items to the menu.`});
 })
 
-router.get('/restaurant', async (req, res) => {
+router.get('/restaurant', authenticateJWT, async (req, res) => {
     const result = await Restaurant.find({});
     
     res.send({data: result});
 })
 
 // Get restaurant by id
-router.get('/restaurant/:id', async (req, res) => {
+router.get('/restaurant/:id', authenticateJWT, async (req, res) => {
     const id = req.params.id;
     const restaurant = await Restaurant.findById(id);
 
